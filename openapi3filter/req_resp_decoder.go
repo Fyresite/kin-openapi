@@ -811,6 +811,13 @@ func decodeBody(body io.Reader, header http.Header, schema *openapi3.SchemaRef, 
 	mediaType := parseMediaType(contentType)
 	decoder, ok := bodyDecoders[mediaType]
 	if !ok {
+		if defaultDecoder, ok := bodyDecoders["default"]; ok {
+			value, err := defaultDecoder(body, header, schema, encFn)
+			if err != nil {
+				return nil, err
+			}
+			return value, nil
+		}
 		return nil, &ParseError{
 			Kind:   KindUnsupportedFormat,
 			Reason: fmt.Sprintf("unsupported content type %q", mediaType),
